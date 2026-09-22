@@ -1,0 +1,101 @@
+spring:
+  application:
+    name: creatoros-backend
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/creatoros}
+    username: ${DB_USERNAME:creatoros}
+    password: ${DB_PASSWORD:creatoros}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+      minimum-idle: ${DB_POOL_MIN_IDLE:2}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        default_batch_fetch_size: 25
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+  ai:
+    # Both provider autoconfigurations are always on the classpath; CreatorOS's own
+    # AiProviderConfig picks at most one at runtime based on creatoros.ai.provider,
+    # and always falls back to a no-op provider when nothing is configured or the
+    # relevant api-key is blank - see docs/ai-and-mcp.md.
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:}
+      chat:
+        options:
+          model: ${ANTHROPIC_MODEL:claude-3-5-haiku-latest}
+    mcp:
+      server:
+        name: creatoros-analytics-mcp
+        version: 0.1.0
+        type: SYNC
+        instructions: >
+          CreatorOS analytics tools for a creator's cross-platform content performance.
+          Every tool call requires an explicit userId (and contentId where relevant) -
+          this server does not track a logged-in session.
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: always
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+creatoros:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-insecure-secret-change-me-please-32-bytes-min}
+    access-token-ttl-minutes: ${JWT_ACCESS_TTL_MINUTES:60}
+  security:
+    token-encryption-key: ${TOKEN_ENCRYPTION_KEY:dev-only-insecure-32-byte-key!!}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  sync:
+    interval-ms: ${SYNC_INTERVAL_MS:900000}
+    stale-after-minutes: ${SYNC_STALE_AFTER_MINUTES:60}
+    executor:
+      core-pool-size: ${SYNC_EXECUTOR_CORE_POOL_SIZE:4}
+      max-pool-size: ${SYNC_EXECUTOR_MAX_POOL_SIZE:8}
+      queue-capacity: ${SYNC_EXECUTOR_QUEUE_CAPACITY:100}
+    retry:
+      max-attempts: ${SYNC_RETRY_MAX_ATTEMPTS:3}
+      initial-backoff-ms: ${SYNC_RETRY_INITIAL_BACKOFF_MS:1000}
+      backoff-multiplier: ${SYNC_RETRY_BACKOFF_MULTIPLIER:2.0}
+  ai:
+    provider: ${AI_PROVIDER:none}
+  social:
+    youtube:
+      api-key: ${YOUTUBE_API_KEY:}
+      client-id: ${YOUTUBE_CLIENT_ID:}
+      client-secret: ${YOUTUBE_CLIENT_SECRET:}

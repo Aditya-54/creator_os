@@ -1,0 +1,16 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+creatoros:
+  jwt:
+    secret: test-only-secret-not-used-in-production-32bytes
+    access-token-ttl-minutes: 60
+  sync:
+    executor:
+      core-pool-size: 2
+      max-pool-size: 2
+      queue-capacity: 10
